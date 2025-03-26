@@ -2,8 +2,6 @@
 
 An MCP-compliant external connector server enabling Claude and other LLMs to interact with web APIs, filesystem, and custom resources.
 
-![Claude Connect](https://raw.githubusercontent.com/grapheneaffiliate/claude-connect/master/docs/images/claude-connect-logo.png)
-
 ## Overview
 
 Claude Connect is a server that implements Anthropic's Model Context Protocol (MCP), allowing Large Language Models like Claude to interact with external tools and resources in a standardized way. This server enables LLMs to access web search results, read and write files in a sandboxed environment, and utilize custom resources.
