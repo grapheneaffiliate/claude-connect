@@ -1,0 +1,17 @@
+{
+  "user-profile": {
+    "handler": "user_profile_handler",
+    "schema": {"user_id": "string"},
+    "description": "Retrieves user profile information."
+  },
+  "weather": {
+    "handler": "weather_handler",
+    "schema": {"location": "string"},
+    "description": "Retrieves weather information for a location."
+  },
+  "news": {
+    "handler": "news_handler",
+    "schema": {"topic": "string", "count": "number"},
+    "description": "Retrieves news articles on a specific topic."
+  }
+}
