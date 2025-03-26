@@ -1,0 +1,13 @@
+{
+  "default": "bing",
+  "apis": {
+    "bing": {
+      "enabled": true,
+      "handler": "bing_search_handler"
+    },
+    "google": {
+      "enabled": false,
+      "handler": "google_search_handler"
+    }
+  }
+}
