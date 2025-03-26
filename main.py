@@ -12,7 +12,10 @@ from typing import Any, Dict, List, Optional, Union
 # Third-party imports
 from dotenv import load_dotenv
 from jsonrpcserver import Result, Success, async_dispatch, method
+import uvicorn  # Added import for HTTP mode
 from sqlmodel import Field, Session, SQLModel, create_engine, select
+from pydantic import BaseModel  # Keep for potential future use
+import requests
 
 # Optional imports (will be imported conditionally)
 try:
@@ -151,21 +154,31 @@ async def bing_search_handler(query: str) -> Result:
     if not api_key:
         return Error(code=-32001, message="Bing API key not configured.")
     
-    # Simulate a search result for demonstration purposes
-    return Success({
-        "results": [
-            {
-                "title": "Example Search Result 1",
-                "url": "https://example.com/1",
-                "snippet": "This is an example search result snippet."
-            },
-            {
-                "title": "Example Search Result 2",
-                "url": "https://example.com/2",
-                "snippet": "Another example search result snippet."
-            }
-        ]
-    })
+    try:
+        # Make the API request to Bing Search API
+        headers = {"Ocp-Apim-Subscription-Key": api_key}
+        params = {"q": query, "count": 10, "offset": 0, "mkt": "en-US"}
+        response = requests.get(
+            "https://api.bing.microsoft.com/v7.0/search",
+            headers=headers,
+            params=params
+        )
+        response.raise_for_status()
+        search_results = response.json()
+        
+        # Process the response to extract relevant information
+        processed_results = []
+        if "webPages" in search_results and "value" in search_results["webPages"]:
+            for result in search_results["webPages"]["value"]:
+                processed_results.append({
+                    "title": result.get("name", ""),
+                    "url": result.get("url", ""),
+                    "snippet": result.get("snippet", "")
+                })
+        
+        return Success({"results": processed_results})
+    except requests.RequestException as e:
+        return Error(code=-32002, message=f"Error making Bing search request: {str(e)}")
 
 async def google_search_handler(query: str) -> Result:
     """Handle Google search requests."""
@@ -175,21 +188,29 @@ async def google_search_handler(query: str) -> Result:
     if not api_key or not cx:
         return Error(code=-32001, message="Google API key or CX not configured.")
     
-    # Simulate a search result for demonstration purposes
-    return Success({
-        "results": [
-            {
-                "title": "Google Search Result 1",
-                "url": "https://example.com/g1",
-                "snippet": "This is a Google search result snippet."
-            },
-            {
-                "title": "Google Search Result 2",
-                "url": "https://example.com/g2",
-                "snippet": "Another Google search result snippet."
-            }
-        ]
-    })
+    try:
+        # Make the API request to Google Custom Search API
+        params = {"key": api_key, "cx": cx, "q": query}
+        response = requests.get(
+            "https://www.googleapis.com/customsearch/v1",
+            params=params
+        )
+        response.raise_for_status()
+        search_results = response.json()
+        
+        # Process the response to extract relevant information
+        processed_results = []
+        if "items" in search_results:
+            for result in search_results["items"]:
+                processed_results.append({
+                    "title": result.get("title", ""),
+                    "url": result.get("link", ""),
+                    "snippet": result.get("snippet", "")
+                })
+        
+        return Success({"results": processed_results})
+    except requests.RequestException as e:
+        return Error(code=-32002, message=f"Error making Google search request: {str(e)}")
 
 @method
 async def tool_file_read_handler(filename: str) -> Result:
@@ -213,7 +234,13 @@ async def tool_file_read_handler(filename: str) -> Result:
 
 @method
 async def tool_file_write_handler(filename: str, content: str, append: bool = False) -> Result:
-    """Handle the tool/file-write method for MCP."""
+    """Handle the tool/file-write method for MCP.
+    
+    Args:
+        filename: The name of the file to write to in the sandbox.
+        content: The content to write to the file.
+        append: Whether to append to the file (True) or overwrite it (False).
+    """
     # Ensure the file is within the sandbox
     file_path = pathlib.Path("sandbox") / filename
     try:
@@ -341,6 +368,7 @@ if HTTP_AVAILABLE:
     @app.post("/mcp")
     async def mcp_endpoint(request: Request, username: str = Depends(verify_token)):
         request_json = await request.json()
+        # Use dispatch directly with the request, relying on the @method decorators
         response = await async_dispatch(request_json)
         return JSONResponse(response)
 
