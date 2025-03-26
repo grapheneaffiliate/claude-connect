@@ -1,0 +1,22 @@
+{
+  "email-reply": {
+    "template": "Draft a polite reply to the following email:\n\n{email_content}",
+    "description": "Template for drafting email replies."
+  },
+  "summarize-data": {
+    "template": "Summarize the following data in a clear, concise way:\n\n{data}",
+    "description": "Template for summarizing complex data."
+  },
+  "explain-code": {
+    "template": "Explain what the following code does in simple terms:\n\n```\n{code}\n```",
+    "description": "Template for explaining code snippets."
+  },
+  "translate": {
+    "template": "Translate the following text from {source_language} to {target_language}:\n\n{text}",
+    "description": "Template for translating text between languages."
+  },
+  "meeting-agenda": {
+    "template": "Create a meeting agenda for a {duration} meeting about {topic} with the following participants:\n\n{participants}",
+    "description": "Template for creating meeting agendas."
+  }
+}
